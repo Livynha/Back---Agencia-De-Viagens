@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import sql from "./db.js";
+import { CompararHash, CriarHash } from './utils.js';
 
 const app = express();
 app.use(cors());
@@ -9,9 +10,11 @@ app.use(express.json());
 //Area Usuario
 app.post("/cadastro", async (req, res) => {
   const { senha, nome, email } = req.body;
+
+  const hash = await CriarHash(senha, 10)
   console.log("cadastrado");
   const cadastro =
-    await sql`INSERT INTO usuario(email, nome, senha) values(${email}, ${nome}, ${senha} )`;
+    await sql`INSERT INTO usuario(email, nome, senha) values(${email}, ${nome}, ${hash} )`;
   return res.status(200).json(cadastro[0]);
 });
 
@@ -21,7 +24,11 @@ app.post("/login/", async (req, res) => {
   if (entrar[0]) {
     const verificar =
       await sql`select * from usuarios where email =${email} and senha= ${senha}`;
-    if (verificar[0]) {
+
+    const teste = await CompararHash(senha,
+      entrar[0].senha)
+
+    if (teste) {
       return res.status(200).json(verificar[0]);
     }
     return res.status(401).json({ message: "Usuário ou senha incorreto" });
