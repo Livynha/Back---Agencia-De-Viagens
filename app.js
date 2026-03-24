@@ -38,7 +38,7 @@ app.post("/login/", async (req, res) => {
 });
 
 app.get("/ListarUsers", async (req, res) => {
-  const listar = await sql`SELECT id_usuarios, nome FROM usuario;`
+  const listar = await sql`SELECT id_user, nome FROM usuarios;`
   return res.status(200).json(listar)
 })
 
