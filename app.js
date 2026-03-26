@@ -17,24 +17,41 @@ app.post("/cadastro", async (req, res) => {
     await sql`INSERT INTO usuario(email, nome, senha) values(${email}, ${nome}, ${hash} )`;
   return res.status(200).json(cadastro[0]);
 });
+app.post("/login", async (req, res) => {
 
-app.post("/login/", async (req, res) => {
   const { email, senha } = req.body;
-  const entrar = await sql`select * from usuarios where email = ${email}`;
-  if (entrar[0]) {
-    const verificar =
-      await sql`select * from usuarios where email =${email} and senha= ${senha}`;
 
-    const teste = await CompararHash(senha,
-      entrar[0].senha)
-
-    if (teste) {
-      return res.status(200).json(verificar[0]);
-    }
-    return res.status(401).json({ message: "Usuário ou senha incorreto" });
-  } else {
-    return res.status(404).json("Usuário não encontrado");
+  if (!email || !senha) {
+    return res.status(400).json({ message: "Email e senha obrigatórios" });
   }
+
+  const usuario = await sql`
+    SELECT * FROM usuario WHERE email = ${email}
+  `;
+
+  if (!usuario[0]) {
+    return res.status(404).json({ message: "Usuário não encontrado" });
+  }
+
+  const senhaCorreta = await CompararHash(
+    senha,
+    usuario[0].senha
+  );
+
+  if (senhaCorreta) {
+
+    return res.status(200).json({
+      id: usuario[0].id_user,
+      nome: usuario[0].nome,
+      email: usuario[0].email
+    });
+
+  } else {
+
+    return res.status(401).json({ message: "Senha incorreta" });
+
+  }
+
 });
 
 app.get("/ListarUsers", async (req, res) => {
